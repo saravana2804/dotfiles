@@ -8,95 +8,47 @@ log() {
   printf '\n\033[1;34m==> %s\033[0m\n' "$*"
 }
 
-warn() {
-  printf '\033[1;33m[warn] %s\033[0m\n' "$*" >&2
-}
-
 if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
-  warn "Do not run this script as root; run it as your normal user (sudo will be used when needed)."
+  echo "[error] Do not run this script as root." >&2
   exit 1
 fi
 
-# Refresh sudo upfront and keep it alive in the background while dnf runs
+# Refresh sudo upfront and keep alive
 sudo -v
-while true; do
-  sudo -n true
-  sleep 60
-  kill -0 "$$" 2>/dev/null || exit
-done 2>/dev/null &
+while true; do sudo -n true; sleep 60; kill -0 "$$" 2>/dev/null || exit; done 2>/dev/null &
 SUDO_KEEPALIVE_PID=$!
 trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true' EXIT
 
-log "1. Installing and updating xdg-user-dirs..."
-sudo dnf install -y xdg-user-dirs
+log "1. Updating xdg-user-dirs..."
+sudo dnf install -y xdg-user-dirs fontconfig
 xdg-user-dirs-update
 
 if [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs" ]]; then
   # shellcheck disable=SC1090
   source "${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs"
 fi
+WALLPAPER_DEST="${XDG_PICTURES_DIR:-$HOME/Pictures}/Wallpapers"
 
-PICTURES_DIR="${XDG_PICTURES_DIR:-$HOME/Pictures}"
-WALLPAPER_DEST="$PICTURES_DIR/Wallpapers"
-
-log "2. Enabling repositories and multimedia codecs..."
+log "2. Enabling repositories and multimedia..."
 FEDORA_VER="$(rpm -E %fedora)"
-REPOS_CHANGED=false
 
-# RPM Fusion (required for steam and freeworld media packages)
-RPMFUSION_PKGS=()
-if ! rpm -q rpmfusion-free-release >/dev/null 2>&1; then
-  RPMFUSION_PKGS+=("https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VER}.noarch.rpm")
-fi
-if ! rpm -q rpmfusion-nonfree-release >/dev/null 2>&1; then
-  RPMFUSION_PKGS+=("https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDORA_VER}.noarch.rpm")
-fi
-if [[ "${#RPMFUSION_PKGS[@]}" -gt 0 ]]; then
-  sudo dnf install -y "${RPMFUSION_PKGS[@]}"
-  REPOS_CHANGED=true
-else
-  log "RPM Fusion repositories already installed, skipping."
-fi
+rpm -q rpmfusion-free-release >/dev/null 2>&1 || \
+  sudo dnf install -y "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VER}.noarch.rpm"
+rpm -q rpmfusion-nonfree-release >/dev/null 2>&1 || \
+  sudo dnf install -y "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDORA_VER}.noarch.rpm"
 
-# LibreWolf repository
-if [[ ! -f /etc/yum.repos.d/librewolf.repo ]]; then
+[[ -f /etc/yum.repos.d/librewolf.repo ]] || \
   sudo dnf config-manager addrepo --overwrite --from-repofile=https://repo.librewolf.net/librewolf.repo
-  REPOS_CHANGED=true
-else
-  log "LibreWolf repository already configured, skipping."
-fi
 
-# COPR repositories (dnf copr creates _copr:copr.fedorainfracloud.org:<owner>:<project>.repo)
-enable_copr_if_missing() {
-  local spec="$1"
-  local repo_file="/etc/yum.repos.d/_copr:copr.fedorainfracloud.org:${spec/\//:}.repo"
-  if [[ ! -f "$repo_file" ]]; then
-    sudo dnf copr enable -y "$spec"
-    REPOS_CHANGED=true
-  else
-    log "COPR ${spec} already enabled, skipping."
-  fi
-}
+sudo dnf copr enable -y imput/helium || true
+sudo dnf copr enable -y yselkowitz/nwg-shell || true
 
-enable_copr_if_missing "imput/helium"
-enable_copr_if_missing "yselkowitz/nwg-shell"
-
-# Terra repository
 if ! rpm -q terra-release >/dev/null 2>&1 && [[ ! -f /etc/yum.repos.d/terra.repo ]]; then
-  sudo dnf install -y --nogpgcheck \
-    --repofrompath "terra,https://repos.fyralabs.com/terra\$releasever" \
-    terra-release
-  REPOS_CHANGED=true
-else
-  log "Terra repository already configured, skipping."
+  sudo dnf install -y --nogpgcheck --repofrompath "terra,https://repos.fyralabs.com/terra\$releasever" terra-release
 fi
-sudo dnf config-manager setopt terra.exclude="librewolf*"
+sudo dnf config-manager setopt terra.exclude="librewolf*" || true
 
-if [[ "$REPOS_CHANGED" == true ]]; then
-  sudo dnf makecache -y
-fi
-
-# Multimedia & hardware acceleration
+# Multimedia codecs
 sudo dnf swap -y ffmpeg-free ffmpeg --allowerasing
 sudo dnf install -y @multimedia --setopt="install_weak_deps=False" --exclude=PackageKit-gstreamer-plugin
 sudo dnf swap -y mesa-va-drivers mesa-va-drivers-freeworld --allowerasing --skip-unavailable || true
@@ -104,65 +56,88 @@ sudo dnf swap -y mesa-vdpau-drivers mesa-vdpau-drivers-freeworld --allowerasing 
 
 log "3. Installing packages..."
 BASE_PKGS=(
-  thunar
-  foot
-  sway
-  ly
-  fish
-  qbittorrent
-  qt5ct
-  qt6ct
-  celluloid
-  steam
-  nwg-looks
-  eog
-  ristretto
-  btop
-  librewolf
-  helium-bin
-  adw-gtk3-theme
-  noctalia
+  thunar foot sway ly fish qbittorrent qt5ct qt6ct celluloid
+  steam nwg-looks eog ristretto btop librewolf helium-bin adw-gtk3-theme noctalia
 )
-
 sudo dnf install -y "${BASE_PKGS[@]}"
 
-log "4. Enabling ly on tty2..."
+log "4. Enabling ly display manager..."
 sudo systemctl disable --now getty@tty2.service 2>/dev/null || true
-if systemctl list-unit-files 'ly@*.service' --no-legend 2>/dev/null | grep -q '^ly@'; then
-  # Template unit (e.g. ly@.service in newer ly releases)
-  sudo systemctl disable ly.service 2>/dev/null || true
-  sudo systemctl enable ly@tty2.service
-else
-  # Standalone ly.service: configure tty = 2 in /etc/ly/config.ini if present
-  if [[ -f /etc/ly/config.ini ]]; then
-    if grep -qE '^\s*#?\s*tty\s*=' /etc/ly/config.ini; then
-      sudo sed -i -E 's/^\s*#?\s*tty\s*=.*/tty = 2/' /etc/ly/config.ini
-    else
-      printf '\ntty = 2\n' | sudo tee -a /etc/ly/config.ini >/dev/null
-    fi
+if [[ -f /etc/ly/config.ini ]]; then
+  sudo sed -i -E 's/^\s*#?\s*tty\s*=.*/tty = 2/' /etc/ly/config.ini
+fi
+sudo systemctl enable ly.service 2>/dev/null || sudo systemctl enable ly@tty2.service
+
+log "5. Copying fonts to /usr/local/share/fonts/..."
+if [[ -d "$REPO_DIR/font" ]]; then
+  sudo mkdir -p /usr/local/share/fonts
+  sudo cp -a "$REPO_DIR/font/." /usr/local/share/fonts/
+  sudo chmod -R a+rX,go-w /usr/local/share/fonts
+  sudo fc-cache -f
+fi
+
+log "6. Copying dotfiles..."
+mkdir -p "$HOME/.config" "$HOME/.icons" "$WALLPAPER_DEST" "$BACKUP_DIR"
+
+# Backup existing configs
+[[ -f "$HOME/.bashrc" ]] && cp -a "$HOME/.bashrc" "$BACKUP_DIR/.bashrc"
+[[ -d "$HOME/.config" ]] && cp -a "$HOME/.config/." "$BACKUP_DIR/.config/" 2>/dev/null || true
+[[ -d "$HOME/.icons" ]] && cp -a "$HOME/.icons/." "$BACKUP_DIR/.icons/" 2>/dev/null || true
+
+# Deploy dotfiles
+[[ -f "$REPO_DIR/.bashrc" ]] && cp -f "$REPO_DIR/.bashrc" "$HOME/.bashrc"
+[[ -d "$REPO_DIR/.icons" ]] && cp -a "$REPO_DIR/.icons/." "$HOME/.icons/"
+[[ -d "$REPO_DIR/.config" ]] && cp -a "$REPO_DIR/.config/." "$HOME/.config/"
+[[ -d "$REPO_DIR/wallpapers" ]] && cp -a "$REPO_DIR/wallpapers/." "$WALLPAPER_DEST/"
+
+rmdir "$BACKUP_DIR" 2>/dev/null || log "Backed up existing files to: $BACKUP_DIR"
+
+log "7. Setting themes (TokyoNight-SE icons, BreezeX-Dark cursor, Iosevka font)..."
+if command -v gsettings >/dev/null 2>&1; then
+  gsettings set org.gnome.desktop.interface icon-theme "TokyoNight-SE" || true
+  gsettings set org.gnome.desktop.interface cursor-theme "BreezeX-Dark" || true
+  gsettings set org.gnome.desktop.interface font-name "Iosevka Nerd Font 12.5" || true
+  gsettings set org.gnome.desktop.interface monospace-font-name "Iosevka Nerd Font 12.5" || true
+fi
+
+# GTK3 settings
+mkdir -p "$HOME/.config/gtk-3.0"
+cat <<EOF > "$HOME/.config/gtk-3.0/settings.ini"
+[Settings]
+gtk-icon-theme-name=TokyoNight-SE
+gtk-cursor-theme-name=BreezeX-Dark
+gtk-font-name=Iosevka Nerd Font 12.5
+EOF
+
+# Default cursor file
+mkdir -p "$HOME/.icons/default"
+cat <<EOF > "$HOME/.icons/default/index.theme"
+[Icon Theme]
+Name=Default
+Comment=Default Cursor Theme
+Inherits=BreezeX-Dark
+EOF
+
+# Foot terminal font override
+FOOT_INI="$HOME/.config/foot/foot.ini"
+if [[ -f "$FOOT_INI" ]]; then
+  if grep -qE '^\s*#?\s*font\s*=' "$FOOT_INI"; then
+    sed -i -E 's/^\s*#?\s*font\s*=.*/font=Iosevka Nerd Font:size=12.5/' "$FOOT_INI"
+  else
+    printf '\n[main]\nfont=Iosevka Nerd Font:size=12.5\n' >> "$FOOT_INI"
   fi
-  sudo systemctl enable ly.service
 fi
 
-log "5. Backing up existing configs and copying dotfiles..."
-mkdir -p "$HOME/.config" "$WALLPAPER_DEST" "$BACKUP_DIR"
+log "8. Installing Starship binary & setting Fish as default shell..."
+curl -sS https://starship.rs/install.sh | sh -s -- -y
 
-if [[ -f "$REPO_DIR/.bashrc" ]]; then
-  [[ -e "$HOME/.bashrc" ]] && cp -a "$HOME/.bashrc" "$BACKUP_DIR/.bashrc"
-  cp -f "$REPO_DIR/.bashrc" "$HOME/.bashrc"
+FISH_BIN="$(command -v fish)"
+if ! grep -qxF "$FISH_BIN" /etc/shells; then
+  printf '%s\n' "$FISH_BIN" | sudo tee -a /etc/shells >/dev/null
 fi
 
-if [[ -d "$REPO_DIR/.config" ]]; then
-  mkdir -p "$BACKUP_DIR/.config"
-  cp -a "$HOME/.config/." "$BACKUP_DIR/.config/" 2>/dev/null || true
-  cp -a "$REPO_DIR/.config/." "$HOME/.config/"
+if [[ "${SHELL:-}" != "$FISH_BIN" ]]; then
+  chsh -s "$FISH_BIN" || sudo usermod -s "$FISH_BIN" "$USER"
 fi
 
-if [[ -d "$REPO_DIR/wallpapers" ]]; then
-  cp -a "$REPO_DIR/wallpapers/." "$WALLPAPER_DEST/"
-fi
-
-# Clean up backup dir if nothing was backed up
-rmdir "$BACKUP_DIR" 2>/dev/null || log "Existing dotfiles backed up to: $BACKUP_DIR"
-
-log "Done! Switch to tty2 (Ctrl+Alt+F2) or reboot to use ly."
+log "Done! Log out or reboot to apply your new login shell and themes."
