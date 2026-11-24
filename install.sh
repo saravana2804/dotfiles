@@ -41,33 +41,66 @@ WALLPAPER_DEST="$PICTURES_DIR/Wallpapers"
 
 log "2. Enabling repositories and multimedia codecs..."
 FEDORA_VER="$(rpm -E %fedora)"
+REPOS_CHANGED=false
 
 # RPM Fusion (required for steam and freeworld media packages)
-sudo dnf install -y \
-  "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VER}.noarch.rpm" \
-  "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDORA_VER}.noarch.rpm"
-
-# Refresh metadata so newly added repos are immediately usable
-sudo dnf makecache -y
+RPMFUSION_PKGS=()
+if ! rpm -q rpmfusion-free-release >/dev/null 2>&1; then
+  RPMFUSION_PKGS+=("https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VER}.noarch.rpm")
+fi
+if ! rpm -q rpmfusion-nonfree-release >/dev/null 2>&1; then
+  RPMFUSION_PKGS+=("https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDORA_VER}.noarch.rpm")
+fi
+if [[ "${#RPMFUSION_PKGS[@]}" -gt 0 ]]; then
+  sudo dnf install -y "${RPMFUSION_PKGS[@]}"
+  REPOS_CHANGED=true
+else
+  log "RPM Fusion repositories already installed, skipping."
+fi
 
 # LibreWolf repository
-sudo dnf config-manager addrepo --overwrite --from-repofile=https://repo.librewolf.net/librewolf.repo
+if [[ ! -f /etc/yum.repos.d/librewolf.repo ]]; then
+  sudo dnf config-manager addrepo --overwrite --from-repofile=https://repo.librewolf.net/librewolf.repo
+  REPOS_CHANGED=true
+else
+  log "LibreWolf repository already configured, skipping."
+fi
+
+# COPR repositories (dnf copr creates _copr:copr.fedorainfracloud.org:<owner>:<project>.repo)
+enable_copr_if_missing() {
+  local spec="$1"
+  local repo_file="/etc/yum.repos.d/_copr:copr.fedorainfracloud.org:${spec/\//:}.repo"
+  if [[ ! -f "$repo_file" ]]; then
+    sudo dnf copr enable -y "$spec"
+    REPOS_CHANGED=true
+  else
+    log "COPR ${spec} already enabled, skipping."
+  fi
+}
+
+enable_copr_if_missing "imput/helium"
+enable_copr_if_missing "yselkowitz/nwg-shell"
+
+# Terra repository
+if ! rpm -q terra-release >/dev/null 2>&1 && [[ ! -f /etc/yum.repos.d/terra.repo ]]; then
+  sudo dnf install -y --nogpgcheck \
+    --repofrompath "terra,https://repos.fyralabs.com/terra\$releasever" \
+    terra-release
+  REPOS_CHANGED=true
+else
+  log "Terra repository already configured, skipping."
+fi
+sudo dnf config-manager setopt terra.exclude="librewolf*"
+
+if [[ "$REPOS_CHANGED" == true ]]; then
+  sudo dnf makecache -y
+fi
 
 # Multimedia & hardware acceleration
 sudo dnf swap -y ffmpeg-free ffmpeg --allowerasing
 sudo dnf install -y @multimedia --setopt="install_weak_deps=False" --exclude=PackageKit-gstreamer-plugin
 sudo dnf swap -y mesa-va-drivers mesa-va-drivers-freeworld --allowerasing --skip-unavailable || true
 sudo dnf swap -y mesa-vdpau-drivers mesa-vdpau-drivers-freeworld --allowerasing --skip-unavailable || true
-
-# COPR repositories
-sudo dnf copr enable -y imput/helium
-sudo dnf copr enable -y yselkowitz/nwg-shell
-
-# Terra repository
-sudo dnf install -y --nogpgcheck \
-  --repofrompath "terra,https://repos.fyralabs.com/terra\$releasever" \
-  terra-release
-  sudo dnf config-manager setopt terra.exclude="librewolf*"
 
 log "3. Installing packages..."
 BASE_PKGS=(
@@ -93,7 +126,25 @@ BASE_PKGS=(
 
 sudo dnf install -y "${BASE_PKGS[@]}"
 
-log "4. Backing up existing configs and copying dotfiles..."
+log "4. Enabling ly on tty2..."
+sudo systemctl disable --now getty@tty2.service 2>/dev/null || true
+if systemctl list-unit-files 'ly@*.service' --no-legend 2>/dev/null | grep -q '^ly@'; then
+  # Template unit (e.g. ly@.service in newer ly releases)
+  sudo systemctl disable ly.service 2>/dev/null || true
+  sudo systemctl enable ly@tty2.service
+else
+  # Standalone ly.service: configure tty = 2 in /etc/ly/config.ini if present
+  if [[ -f /etc/ly/config.ini ]]; then
+    if grep -qE '^\s*#?\s*tty\s*=' /etc/ly/config.ini; then
+      sudo sed -i -E 's/^\s*#?\s*tty\s*=.*/tty = 2/' /etc/ly/config.ini
+    else
+      printf '\ntty = 2\n' | sudo tee -a /etc/ly/config.ini >/dev/null
+    fi
+  fi
+  sudo systemctl enable ly.service
+fi
+
+log "5. Backing up existing configs and copying dotfiles..."
 mkdir -p "$HOME/.config" "$WALLPAPER_DEST" "$BACKUP_DIR"
 
 if [[ -f "$REPO_DIR/.bashrc" ]]; then
@@ -114,4 +165,4 @@ fi
 # Clean up backup dir if nothing was backed up
 rmdir "$BACKUP_DIR" 2>/dev/null || log "Existing dotfiles backed up to: $BACKUP_DIR"
 
-log "Done!"
+log "Done! Switch to tty2 (Ctrl+Alt+F2) or reboot to use ly."
