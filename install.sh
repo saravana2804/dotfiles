@@ -57,7 +57,8 @@ sudo dnf swap -y mesa-vdpau-drivers mesa-vdpau-drivers-freeworld --allowerasing 
 log "3. Installing packages..."
 BASE_PKGS=(
   thunar foot sway ly fish qbittorrent qt5ct qt6ct celluloid
-  steam nwg-looks eog ristretto btop librewolf helium-bin adw-gtk3-theme noctalia
+  steam nwg-look eog ristretto btop librewolf helium-bin adw-gtk3-theme noctalia fastfetch
+  inkscape
 )
 sudo dnf install -y "${BASE_PKGS[@]}"
 
