@@ -1,0 +1,236 @@
+/* ==========================================================================
+   Tokyo Night Waybar Styling
+   ========================================================================== */
+
+* {
+    font-family: "GeistMono Nerd Font Propo", monospace;
+    font-size: 14px;
+    transition: none;
+}
+
+window#waybar {
+    background-color: #1a1b26;
+    color: #c0caf5;
+    border-bottom: 2px solid #24283b;
+}
+
+/* ==========================================================================
+   Tooltips
+   ========================================================================== */
+
+tooltip {
+    background-color: #1a1b26;
+    border: 1px solid #414868;
+    border-radius: 4px;
+}
+
+tooltip label {
+    color: #c0caf5;
+    font-size: 11px;
+    padding: 3px;
+}
+
+/* ==========================================================================
+   Workspaces
+   ========================================================================== */
+
+#workspaces {
+    padding: 0px 2px;
+}
+
+#workspaces button {
+    padding: 0px 4px;
+    margin: 2px 0px;
+    min-width: 16px;
+    background-color: transparent;
+    border-radius: 2px;
+    color: #565f89;
+}
+
+#workspaces button:hover {
+    background-color: #24283b;
+    color: #c0caf5;
+}
+
+#workspaces button.persistent {
+    color: #414868;
+    background-color: transparent;
+}
+
+#workspaces button.current_output {
+    background-color: #24283b;
+    color: #7dcfff;
+    border: 1px solid #414868;
+}
+
+#workspaces button.focused {
+    background-color: #7aa2f7;
+    color: #1a1b26;
+    font-weight: 700;
+}
+
+#workspaces button.urgent {
+    background-color: #f7768e;
+    color: #1a1b26;
+    font-weight: 700;
+    border: 1px solid #f7768e;
+}
+
+/* ==========================================================================
+   Standard Modules / Widgets
+   ========================================================================== */
+
+#battery,
+#network,
+#memory,
+#cpu,
+#clock,
+#cava {
+    border-radius: 3px;
+    padding: 4px 8px;
+    background-color: #24283b;
+    color: #c0caf5;
+    margin: 4px 3px;
+    border: 1px solid #414868;
+}
+
+#cpu {
+    color: #bb9af7;
+}
+
+#memory {
+    color: #9ece6a;
+}
+
+#battery {
+    color: #7dcfff;
+}
+
+#network {
+    color: #e0af68;
+}
+
+#clock {
+    color: #7aa2f7;
+    font-weight: 600;
+}
+
+#cava {
+    color: #7aa2f7;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Group Containers Reset
+   ========================================================================== */
+
+.modules-right > .group {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* ==========================================================================
+   PulseAudio Group & Slider
+   ========================================================================== */
+
+#pulseaudio {
+    background-color: #24283b;
+    color: #f7768e;
+    padding: 4px 8px;
+    margin: 4px 0px 4px 3px;
+    border: 1px solid #414868;
+    border-right: none;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+#pulseaudio-slider {
+    background-color: #24283b;
+    color: #f7768e;
+    padding: 0px 6px;
+    margin: 4px 3px 4px 0px;
+    border: 1px solid #414868;
+    border-left: 1px solid #414868;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+#pulseaudio-slider slider {
+    all: unset;
+    min-height: 0;
+    min-width: 0;
+    opacity: 0;
+    background-image: none;
+    border: none;
+}
+
+#pulseaudio-slider trough {
+    min-height: 6px;
+    min-width: 45px;
+    border-radius: 2px;
+    background: #414868;
+}
+
+#pulseaudio-slider highlight {
+    min-width: 2px;
+    border-radius: 2px;
+    background: #f7768e;
+}
+
+/* ==========================================================================
+   Backlight Group & Slider
+   ========================================================================== */
+
+#backlight {
+    background-color: #24283b;
+    color: #e0af68;
+    padding: 4px 8px;
+    margin: 4px 0px 4px 3px;
+    border: 1px solid #414868;
+    border-right: none;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+#backlight-slider {
+    background-color: #24283b;
+    color: #ff9e64;
+    padding: 0px 6px;
+    margin: 4px 3px 4px 0px;
+    border: 1px solid #414868;
+    border-left: 1px solid #414868;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+#backlight-slider slider {
+    all: unset;
+    min-height: 0;
+    min-width: 0;
+    opacity: 0;
+    background-image: none;
+    border: none;
+}
+
+#backlight-slider trough {
+    min-height: 6px;
+    min-width: 45px;
+    border-radius: 2px;
+    background: #414868;
+}
+
+#backlight-slider highlight {
+    min-width: 2px;
+    border-radius: 2px;
+    background: #ff9e64;
+}

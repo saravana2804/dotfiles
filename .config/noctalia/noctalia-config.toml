@@ -1,0 +1,217 @@
+[accessibility]
+ui_scale = 1.1500000096857548
+
+[bar.default]
+capsule = true
+capsule_border = "outline"
+capsule_radius = 3
+end = [ "network_rx", "cpu", "ram", "network", "volume", "session", "brightness" ]
+font_scale = 1.0999999828636646
+margin_ends = 0
+radius = 0
+start = [ "workspaces", "audio_visualizer" ]
+thickness = 43
+
+[control_center]
+width = 800
+
+[desktop_widgets]
+schema_version = 2
+widget_order = []
+
+    [desktop_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [desktop_widgets.widget]
+
+[dock]
+background_opacity = 0.99999997764825821
+concave_edge_corners = false
+cross_axis_padding = 0
+radius = 20
+
+[hot_corners.top_left]
+action = "window_switcher"
+
+[idle]
+behavior_order = [ "lock", "screen-off", "lock-and-suspend" ]
+pre_action_fade_seconds = 0
+
+    [idle.behavior.lock]
+    action = "lock"
+    enabled = true
+    timeout = 120.0
+
+    [idle.behavior.lock-and-suspend]
+    action = "lock_and_suspend"
+    enabled = true
+    timeout = 300.0
+
+    [idle.behavior.screen-off]
+    action = "screen_off"
+    enabled = true
+    timeout = 130.0
+
+[lockscreen]
+blur_intensity = 0.24999999441206455
+
+[lockscreen_widgets]
+enabled = true
+schema_version = 2
+widget_order = [ "lockscreen-login-box@HDMI-A-1", "lockscreen-widget-0000000000000001" ]
+
+    [lockscreen_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1"]
+    box_height = 70.0
+    box_width = 400.0
+    cx = 960.0
+    cy = 575.0
+    output = "HDMI-A-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1".settings]
+        background_color = "surface_variant"
+        background_opacity = 1.0
+        background_radius = 13.0
+        center_password_text = true
+        input_opacity = 1.0
+        input_radius = 22.0
+        layout = "compact"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_session_buttons = true
+        show_unlock_hint = false
+        show_weather = true
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000001]
+    box_height = 288.0
+    box_width = 496.0
+    cx = 960.0
+    cy = 460.0
+    output = "HDMI-A-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000001.settings]
+        background = false
+        background_color = "surface"
+        background_opacity = 0.80000000000000004
+        background_padding = 10
+        background_radius = 12
+        center_text = true
+        circle = true
+        clock_style = "digital"
+        color = "primary"
+        font_family = ""
+        format = "{:%I:%M %p}"
+        shadow = true
+        timezone = ""
+
+[plugin_settings."noctalia/wallpaper_depth"]
+feather = 37
+threshold = 73
+
+[plugins]
+auto_update = "official"
+enabled = []
+
+[shell]
+avatar_path = "/home/saravanan/Pictures/wallpapers/wallhaven-3l7dp9.png"
+corner_radius_scale = 0.20000000298023224
+font_family = "Iosevka Nerd Font"
+settings_show_advanced = false
+
+    [shell.animation]
+    enabled = false
+
+    [shell.launcher]
+    categories = false
+    compact = true
+    show_app_origin_indicator = false
+
+        [shell.launcher.providers.calculator]
+        global = true
+
+    [shell.shadow]
+    alpha = 0.24999999441206455
+
+[theme]
+builtin = "Tokyo-Night"
+community_palette = "Tokyo Night Moon"
+custom_palette = "TokyoNight"
+mode = "dark"
+source = "custom"
+wallpaper_scheme = "m3-fruit-salad"
+
+    [theme.templates]
+    builtin_ids = [ "btop", "foot", "gtk3", "gtk4", "kcolorscheme", "qt", "starship" ]
+    community_ids = [ "spicetify", "zen-browser", "zed" ]
+
+[wallpaper]
+fill_mode = "fit"
+transition = []
+
+    [wallpaper.default]
+    path = "/home/saravanan/Pictures/wallpapers/wallhaven-3l7dp9.png"
+
+    [wallpaper.last]
+    path = "/home/saravanan/Pictures/wallpapers/wallhaven-3l7dp9.png"
+
+    [wallpaper.monitors.HDMI-A-1]
+    path = "/home/saravanan/Pictures/wallpapers/wallhaven-3l7dp9.png"
+
+[widget.audio_visualizer]
+bands = 10
+color_1 = "tertiary"
+width = 60
+
+[widget.brightness]
+color = "tertiary"
+
+[widget.clipboard]
+color = "tertiary"
+
+[widget.clock]
+color = "primary"
+format = "   %d:%b:%Y | 󰥔  %I:%M %p "
+
+[widget.cpu]
+color = "secondary"
+visualization = "none"
+
+[widget.network]
+color = "primary"
+
+[widget.network_rx]
+color = "primary"
+visualization = "none"
+
+[widget.notifications]
+color = "secondary"
+
+[widget.ram]
+color = "tertiary"
+visualization = "none"
+
+[widget.session]
+color = "error"
+
+[widget.volume]
+color = "secondary"
+
+[widget.workspaces]
+active_pill_size = 1.5
+scale = 1.1000000000000001
