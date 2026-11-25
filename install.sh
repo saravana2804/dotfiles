@@ -15,7 +15,7 @@ sudo -v
 
 # 1. Base setup & directories
 sudo dnf upgrade -y
-sudo dnf install -y xdg-user-dirs fontconfig curl
+sudo dnf install -y xdg-user-dirs fontconfig curl pciutils
 xdg-user-dirs-update
 mkdir -p "$CONFIG_DIR" "$HOME/.icons" "$HOME/.icons/default" "$CONFIG_DIR/gtk-3.0" "$WALLPAPER_DIR"
 
@@ -41,11 +41,24 @@ fi
 
 sudo dnf config-manager setopt terra.exclude="librewolf*"
 
-# 3. Multimedia & hardware acceleration
+# 3. Multimedia & graphics hardware acceleration
 sudo dnf swap -y ffmpeg-free ffmpeg --allowerasing
-sudo dnf install -y @multimedia --setopt=install_weak_deps=False --exclude=PackageKit-gstreamer-plugin
-sudo dnf swap -y mesa-va-drivers mesa-va-drivers-freeworld --allowerasing --skip-unavailable
-sudo dnf swap -y mesa-vdpau-drivers mesa-vdpau-drivers-freeworld --allowerasing --skip-unavailable
+sudo dnf install -y @multimedia --exclude=PackageKit-gstreamer-plugin
+sudo dnf install -y libavcodec-freeworld gstreamer1-plugins-bad-free-extras gstreamer1-plugins-ugly --skip-unavailable
+
+# Mesa VA-API freeworld (parallel install, not swap)
+sudo dnf install -y mesa-va-drivers-freeworld --skip-unavailable
+
+# Vulkan video acceleration for AMD / Mesa
+if lspci | grep -qiE 'VGA|3D|Display' && lspci | grep -qiE 'AMD|ATI|Radeon'; then
+    sudo dnf swap -y mesa-vulkan-drivers mesa-vulkan-drivers-freeworld --allowerasing --skip-unavailable ||
+        sudo dnf install -y mesa-vulkan-drivers-freeworld --skip-unavailable
+fi
+
+# Intel media driver for hardware VA-API on modern Intel GPUs
+if lspci | grep -qiE 'VGA|3D|Display' && lspci | grep -qi 'Intel'; then
+    sudo dnf install -y intel-media-driver --skip-unavailable
+fi
 
 # 4. Applications
 PACKAGES=(
@@ -95,10 +108,11 @@ fi
 # fi
 
 # 9. Default shell
-FISH_PATH="$(command -v fish)"
-grep -Fxq "$FISH_PATH" /etc/shells || echo "$FISH_PATH" | sudo tee -a /etc/shells >/dev/null
-if [[ "${SHELL:-}" != "$FISH_PATH" ]]; then
-    sudo usermod -s "$FISH_PATH" "$USER"
+if FISH_PATH="$(command -v fish)"; then
+    grep -Fxq "$FISH_PATH" /etc/shells || echo "$FISH_PATH" | sudo tee -a /etc/shells >/dev/null
+    if [[ "${SHELL:-}" != "$FISH_PATH" ]]; then
+        sudo usermod -s "$FISH_PATH" "$USER"
+    fi
 fi
 
 echo "Done. Reboot or log out to apply changes."
