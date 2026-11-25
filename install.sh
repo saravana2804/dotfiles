@@ -100,12 +100,12 @@ fi
 # Inherits=BreezeX-Dark
 # EOF
 
-# if command -v gsettings >/dev/null 2>&1; then
-#     gsettings set org.gnome.desktop.interface icon-theme "TokyoNight-SE" || true
-#     gsettings set org.gnome.desktop.interface cursor-theme "BreezeX-Dark" || true
-#     gsettings set org.gnome.desktop.interface font-name "Iosevka Nerd Font 12.5" || true
-#     gsettings set org.gnome.desktop.interface monospace-font-name "Iosevka Nerd Font 12.5" || true
-# fi
+if command -v gsettings >/dev/null 2>&1; then
+     gsettings set org.gnome.desktop.interface icon-theme "TokyoNight-SE" || true
+     gsettings set org.gnome.desktop.interface cursor-theme "BreezeX-Dark" || true
+     gsettings set org.gnome.desktop.interface font-name "Iosevka Nerd Font 12.5" || true
+     gsettings set org.gnome.desktop.interface monospace-font-name "Iosevka Nerd Font 12.5" || true
+fi
 
 # 9. Default shell
 if FISH_PATH="$(command -v fish)"; then
