@@ -3,7 +3,7 @@ ui_scale = 1.1500000096857548
 
 [bar.default]
 capsule = true
-capsule_border = "outline"
+capsule_border = "outline_variant"
 capsule_radius = 3
 end = [ "network_rx", "cpu", "ram", "network", "volume", "session", "brightness" ]
 font_scale = 1.0999999828636646
@@ -56,6 +56,7 @@ pre_action_fade_seconds = 0
 
 [lockscreen]
 blur_intensity = 0.24999999441206455
+transition = []
 
 [lockscreen_widgets]
 enabled = true
@@ -79,7 +80,7 @@ widget_order = [ "lockscreen-login-box@HDMI-A-1", "lockscreen-widget-00000000000
     type = "login_box"
 
         [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1".settings]
-        background_color = "surface_variant"
+        background_color = "surface_container"
         background_opacity = 1.0
         background_radius = 13.0
         center_password_text = true
@@ -129,7 +130,7 @@ auto_update = "official"
 enabled = []
 
 [shell]
-avatar_path = "/home/saravanan/Pictures/wallpapers/wallhaven-3l7dp9.png"
+avatar_path = "/home/saravanan/Downloads/23a1d463d7c54c011744b2347f8a68c5-3616940705.jpg"
 corner_radius_scale = 0.20000000298023224
 font_family = "Iosevka Nerd Font"
 settings_show_advanced = false
@@ -140,7 +141,13 @@ settings_show_advanced = false
     [shell.launcher]
     categories = false
     compact = true
+    default_view = "all"
+    layout = "simple"
+    search_position = "top"
     show_app_origin_indicator = false
+    show_session_button = false
+    show_settings_button = false
+    width = 560
 
         [shell.launcher.providers.calculator]
         global = true
@@ -158,23 +165,23 @@ wallpaper_scheme = "m3-fruit-salad"
 
     [theme.templates]
     builtin_ids = [ "btop", "foot", "gtk3", "gtk4", "kcolorscheme", "qt", "starship" ]
-    community_ids = [ "spicetify", "zen-browser", "zed" ]
+    community_ids = [ "spicetify", "zen-browser", "zed", "bat", "starship", "yazi" ]
 
 [wallpaper]
 fill_mode = "fit"
 transition = []
 
     [wallpaper.default]
-    path = "/home/saravanan/Pictures/wallpapers/wallhaven-3l7dp9.png"
+    path = "/home/saravanan/Pictures/wallpapers/wallhaven-w5q7m6.jpg"
 
     [wallpaper.last]
-    path = "/home/saravanan/Pictures/wallpapers/wallhaven-3l7dp9.png"
+    path = "/home/saravanan/Pictures/wallpapers/wallhaven-w5q7m6.jpg"
 
     [wallpaper.monitors.HDMI-A-1]
-    path = "/home/saravanan/Pictures/wallpapers/wallhaven-3l7dp9.png"
+    path = "/home/saravanan/Pictures/wallpapers/wallhaven-w5q7m6.jpg"
 
 [widget.audio_visualizer]
-bands = 10
+bands = 15
 color_1 = "tertiary"
 width = 60
 
@@ -215,3 +222,4 @@ color = "secondary"
 [widget.workspaces]
 active_pill_size = 1.5
 scale = 1.1000000000000001
+show_tooltip = false
